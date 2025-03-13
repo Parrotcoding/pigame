@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pi Day Play - Pi Click Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Global Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #3f51b5;
+      color: #fff;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    nav a {
+      color: #fff;
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    main {
+      flex: 1;
+      padding: 2rem;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .hero p {
+      font-size: 1.2rem;
+    }
+    .game {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .score-board {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+    }
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .circle {
+      background: #3f51b5;
+      color: #fff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .circle:hover {
+      transform: scale(1.1);
+    }
+    button {
+      background: #3f51b5;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Pi Day Play</h2>
+    <nav>
+      <a href="#hero">Home</a>
+      <a href="#game">Game</a>
+      <a href="#about">About</a>
+    </nav>
+  </header>
+  <main>
+    <section class="hero" id="hero">
+      <h1>Happy Pi Day!</h1>
+      <p>Celebrate the magic of numbers with our fun Pi Click Challenge!</p>
+    </section>
+    <section class="game" id="game">
+      <h2>Pi Click Challenge</h2>
+      <div class="score-board">
+        <span id="score">Score: 0</span>
+        <span id="target">Next Digit: 3</span>
+      </div>
+      <div id="game-board">
+        <!-- Circles will be generated here -->
+      </div>
+      <button id="restart-btn" style="display:none;">Restart Game</button>
+    </section>
+    <section class="about" id="about" style="margin-top:2rem; text-align: center;">
+      <h2>About Pi Day Play</h2>
+      <p>
+        This website was created to bring a playful twist to Pi Day! Test your memory and reflexes as you click the digits of π in order.
+        Good luck and have fun!
+      </p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Pi Day Play. All rights reserved.</p>
+  </footer>
+  <script>
+    // JavaScript for Pi Click Challenge
+
+    // Pi digits to follow (extend this string if desired)
+    const piDigits = "3141592653589793";
+    let currentIndex = 0;
+    let score = 0;
+
+    const scoreEl = document.getElementById("score");
+    const targetEl = document.getElementById("target");
+    const gameBoard = document.getElementById("game-board");
+    const restartBtn = document.getElementById("restart-btn");
+
+    // Shuffle an array using Fisher-Yates algorithm
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Generate the game board with circles containing digits 0-9
+    function generateBoard() {
+      gameBoard.innerHTML = "";
+      // Create an array of digits from 0 to 9 as strings
+      const digits = Array.from({ length: 10 }, (_, i) => i.toString());
+      // Shuffle the array
+      const shuffledDigits = shuffle(digits);
+      // Create circle elements for each digit
+      shuffledDigits.forEach((digit) => {
+        const circle = document.createElement("div");
+        circle.classList.add("circle");
+        circle.textContent = digit;
+        circle.addEventListener("click", () => handleClick(digit));
+        gameBoard.appendChild(circle);
+      });
+    }
+
+    // Handle click events on circles
+    function handleClick(clickedDigit) {
+      const expectedDigit = piDigits[currentIndex];
+      if (clickedDigit === expectedDigit) {
+        // Correct click: update score and move to next digit
+        score++;
+        currentIndex++;
+        scoreEl.textContent = "Score: " + score;
+        if (currentIndex < piDigits.length) {
+          targetEl.textContent = "Next Digit: " + piDigits[currentIndex];
+          generateBoard();
+        } else {
+          // Player wins if all digits are correctly clicked
+          targetEl.textContent = "You Win!";
+          gameBoard.innerHTML = "";
+          restartBtn.style.display = "inline-block";
+        }
+      } else {
+        // Wrong click: game over
+        targetEl.textContent = "Game Over! Expected: " + expectedDigit;
+        gameBoard.innerHTML = "";
+        restartBtn.style.display = "inline-block";
+      }
+    }
+
+    // Restart the game
+    function restartGame() {
+      currentIndex = 0;
+      score = 0;
+      scoreEl.textContent = "Score: " + score;
+      targetEl.textContent = "Next Digit: " + piDigits[currentIndex];
+      restartBtn.style.display = "none";
+      generateBoard();
+    }
+
+    // Initialize game on page load
+    window.onload = generateBoard;
+    restartBtn.addEventListener("click", restartGame);
+  </script>
+</body>
+</html>
