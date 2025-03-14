@@ -2,12 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pi Day Play - Pi Click Challenge</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=800, initial-scale=1.0" />
+  <title>Pi Day Play - Infinite Balloon Challenge</title>
   <style>
-    /* Global Styles */
+    /* Global Variables & Common Styling */
+    :root {
+      --primary-color: #3f51b5;
+      --accent-color: #ff9800;
+      --bg-color: #ffffff;
+      --secondary-color: #f5f5f5;
+      --text-color: #333;
+    }
     * {
       box-sizing: border-box;
       margin: 0;
@@ -15,208 +20,378 @@
     }
     body {
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-      color: #333;
+      background: var(--secondary-color);
+      color: var(--text-color);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      padding: 1rem;
     }
-    header {
-      background: #3f51b5;
-      color: #fff;
-      padding: 1rem 2rem;
+    h1, h2, p {
       text-align: center;
-    }
-    nav a {
-      color: #fff;
-      margin: 0 1rem;
-      text-decoration: none;
-      font-weight: 700;
-    }
-    main {
-      flex: 1;
-      padding: 2rem;
-    }
-    .hero {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    .hero h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
-    }
-    .hero p {
-      font-size: 1.2rem;
-    }
-    .game {
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
-      background: #fff;
-      border-radius: 8px;
-      padding: 2rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1rem;
     }
     .score-board {
       display: flex;
-      justify-content: space-around;
-      margin-bottom: 1.5rem;
-      font-size: 1.2rem;
-    }
-    #game-board {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .circle {
-      background: #3f51b5;
-      color: #fff;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .circle:hover {
-      transform: scale(1.1);
+      gap: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      width: 100%;
+      max-width: 800px;
     }
     button {
-      background: #3f51b5;
+      background: var(--primary-color);
       color: #fff;
       border: none;
       padding: 0.75rem 1.5rem;
       font-size: 1rem;
       border-radius: 4px;
       cursor: pointer;
+      transition: background 0.3s;
     }
     button:hover {
-      opacity: 0.9;
+      background: var(--accent-color);
     }
-    footer {
-      text-align: center;
+    /* Balloon Game Section */
+    #balloon-game {
+      width: 100%;
+      max-width: 800px;
+      background: var(--bg-color);
       padding: 1rem;
-      background: #f1f1f1;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    /* Game Area: 800x600 container */
+    #balloon-container {
+      position: relative;
+      width: 800px;
+      height: 600px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin: 0 auto 1rem auto;
+      background: #e8f0fe;
+    }
+    #balloon-board {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    /* Balloon Styling */
+    .balloon {
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      position: absolute;
+      user-select: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+    .balloon:hover {
+      transform: scale(1.1);
+    }
+    /* Colorful Balloon Classes */
+    .balloon.red { background-color: #e57373; }
+    .balloon.blue { background-color: #64b5f6; }
+    .balloon.green { background-color: #81c784; }
+    .balloon.yellow { background-color: #fff176; }
+    .balloon.purple { background-color: #ba68c8; }
+    .balloon.orange { background-color: #ffb74d; }
+    /* Falling Digit Animation */
+    .falling-digit {
+      position: fixed;
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      transition: top 1s ease-in, left 1s ease-in;
+      pointer-events: none;
+      z-index: 100;
+    }
+    /* Pie Dish: Now placed outside the container (sibling within #balloon-game) */
+    #pie-container {
+      margin: 1rem auto 0 auto;
+      width: 150px; /* initial width */
+      height: 80px; /* fixed height */
+      border: 5px solid var(--primary-color);
+      border-radius: 40px; /* pill shape */
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;  /* fixed text size */
+      color: var(--primary-color);
+      transition: width 0.3s;
+      user-select: none;
+      padding: 0 20px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h2>Pi Day Play</h2>
-    <nav>
-      <a href="#hero">Home</a>
-      <a href="#game">Game</a>
-      <a href="#about">About</a>
-    </nav>
-  </header>
-  <main>
-    <section class="hero" id="hero">
-      <h1>Happy Pi Day!</h1>
-      <p>Celebrate the magic of numbers with our fun Pi Click Challenge!</p>
-    </section>
-    <section class="game" id="game">
-      <h2>Pi Click Challenge</h2>
-      <div class="score-board">
-        <span id="score">Score: 0</span>
-        <span id="target">Next Digit: 3</span>
+  <h1>Pi Day Play</h1>
+  <h2>Infinite Whipping Cream Balloon Pi Challenge</h2>
+  <div class="score-board">
+    <span id="balloon-score">Score: 0</span>
+  </div>
+  <!-- Game Section -->
+  <div id="balloon-game">
+    <div id="balloon-container">
+      <div id="balloon-board">
+        <!-- Balloons will be created here by JavaScript -->
       </div>
-      <div id="game-board">
-        <!-- Circles will be generated here -->
-      </div>
-      <button id="restart-btn" style="display:none;">Restart Game</button>
-    </section>
-    <section class="about" id="about" style="margin-top:2rem; text-align: center;">
-      <h2>About Pi Day Play</h2>
-      <p>
-        This website was created to bring a playful twist to Pi Day! Test your memory and reflexes as you click the digits of π in order.
-        Good luck and have fun!
-      </p>
-    </section>
-  </main>
-  <footer>
-    <p>&copy; 2025 Pi Day Play. All rights reserved.</p>
-  </footer>
+    </div>
+    <!-- Pie Dish is now outside the balloon container -->
+    <div id="pie-container">Pie:</div>
+  </div>
+  <button id="balloon-restart-btn" style="display:none;">Restart Game</button>
+
   <script>
-    // JavaScript for Pi Click Challenge
+    /* ---------- Global Constants & Variables ---------- */
+    const piDigits = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273";
+    
+    let balloonCurrentIndex = 0; // number of correct digits entered so far
+    let balloonScore = 0;        // count of correct pops
+    let pieDigitsCollected = "";  // collected digits (with decimal inserted)
+    let gameRunning = true;      // game state flag
 
-    // Pi digits to follow (extend this string if desired)
-    const piDigits = "3141592653589793";
-    let currentIndex = 0;
-    let score = 0;
+    const balloonScoreEl = document.getElementById("balloon-score");
+    const balloonBoard = document.getElementById("balloon-board");
+    const balloonRestartBtn = document.getElementById("balloon-restart-btn");
+    const pieContainerEl = document.getElementById("pie-container");
+    const containerEl = document.getElementById("balloon-container");
+    
+    // Array of active balloon objects.
+    // Each object: { digit, elem, x, y, vx, vy, width, height, radius }
+    let balloons = [];
+    const containerWidth = containerEl.clientWidth;   // 800 px
+    const containerHeight = containerEl.clientHeight; // 600 px
+    const balloonRadius = 35; // approximate collision radius
 
-    const scoreEl = document.getElementById("score");
-    const targetEl = document.getElementById("target");
-    const gameBoard = document.getElementById("game-board");
-    const restartBtn = document.getElementById("restart-btn");
+    let lastTime = null; // for simulation loop
 
-    // Shuffle an array using Fisher-Yates algorithm
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
+    /* ---------- Utility: Random Color Class ---------- */
+    function getRandomColorClass() {
+      const colors = ["red", "blue", "green", "yellow", "purple", "orange"];
+      return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    // Generate the game board with circles containing digits 0-9
-    function generateBoard() {
-      gameBoard.innerHTML = "";
-      // Create an array of digits from 0 to 9 as strings
-      const digits = Array.from({ length: 10 }, (_, i) => i.toString());
-      // Shuffle the array
-      const shuffledDigits = shuffle(digits);
-      // Create circle elements for each digit
-      shuffledDigits.forEach((digit) => {
-        const circle = document.createElement("div");
-        circle.classList.add("circle");
-        circle.textContent = digit;
-        circle.addEventListener("click", () => handleClick(digit));
-        gameBoard.appendChild(circle);
+    /* ---------- Physics & Balloon Functions ---------- */
+    function createBalloon(digit) {
+      const elem = document.createElement("div");
+      elem.classList.add("balloon");
+      // Add a random color class.
+      elem.classList.add(getRandomColorClass());
+      elem.textContent = digit;
+      const width = 70, height = 70;
+      const x = Math.random() * (containerWidth - width);
+      const y = Math.random() * (containerHeight - height);
+      // Random initial velocity between -100 and 100 pixels/second.
+      const vx = Math.random() * 200 - 100;
+      const vy = Math.random() * 200 - 100;
+      elem.style.left = x + "px";
+      elem.style.top = y + "px";
+      const balloonObj = { digit, elem, x, y, vx, vy, width, height, radius: balloonRadius };
+      elem.addEventListener("click", () => handleBalloonClick(digit, balloonObj));
+      balloonBoard.appendChild(elem);
+      return balloonObj;
+    }
+
+    // Spawn exactly one balloon for each digit 0–9.
+    function spawnAllBalloons() {
+      balloons.forEach(b => b.elem.remove());
+      balloons = [];
+      for (let d = 0; d <= 9; d++) {
+        const b = createBalloon(d.toString());
+        balloons.push(b);
+      }
+    }
+
+    function removeBalloon(balloonObj) {
+      const index = balloons.indexOf(balloonObj);
+      if (index > -1) balloons.splice(index, 1);
+      balloonObj.elem.remove();
+    }
+
+    function respawnBalloon(digit) {
+      const b = createBalloon(digit);
+      balloons.push(b);
+    }
+
+    function updatePhysics(dt) {
+      // Update positions.
+      balloons.forEach(b => {
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        if (b.x < 0) { b.x = 0; b.vx *= -1; }
+        if (b.x + b.width > containerWidth) { b.x = containerWidth - b.width; b.vx *= -1; }
+        if (b.y < 0) { b.y = 0; b.vy *= -1; }
+        if (b.y + b.height > containerHeight) { b.y = containerHeight - b.height; b.vy *= -1; }
+      });
+      // Check collisions between balloons.
+      for (let i = 0; i < balloons.length; i++) {
+        for (let j = i + 1; j < balloons.length; j++) {
+          let b1 = balloons[i], b2 = balloons[j];
+          let cx1 = b1.x + b1.width / 2, cy1 = b1.y + b1.height / 2;
+          let cx2 = b2.x + b2.width / 2, cy2 = b2.y + b2.height / 2;
+          let dx = cx2 - cx1, dy = cy2 - cy1;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          let minDist = b1.radius + b2.radius;
+          if (dist < minDist && dist > 0) {
+            let nx = dx / dist, ny = dy / dist;
+            let dvx = b1.vx - b2.vx, dvy = b1.vy - b2.vy;
+            let dot = dvx * nx + dvy * ny;
+            if (dot < 0) {
+              b1.vx -= dot * nx;
+              b1.vy -= dot * ny;
+              b2.vx += dot * nx;
+              b2.vy += dot * ny;
+            }
+            let overlap = minDist - dist;
+            b1.x -= (overlap * nx) / 2;
+            b1.y -= (overlap * ny) / 2;
+            b2.x += (overlap * nx) / 2;
+            b2.y += (overlap * ny) / 2;
+          }
+        }
+      }
+      // Collision between balloons and the pie dish.
+      let containerRect = containerEl.getBoundingClientRect();
+      let pieRect = pieContainerEl.getBoundingClientRect();
+      let pieX = pieRect.left - containerRect.left;
+      let pieY = pieRect.top - containerRect.top;
+      let pieW = pieRect.width;
+      let pieH = pieRect.height;
+      balloons.forEach(b => {
+        if (b.x < pieX + pieW && b.x + b.width > pieX &&
+            b.y < pieY + pieH && b.y + b.height > pieY) {
+          let overlapX = Math.min(b.x + b.width, pieX + pieW) - Math.max(b.x, pieX);
+          let overlapY = Math.min(b.y + b.height, pieY + pieH) - Math.max(b.y, pieY);
+          if (overlapX < overlapY) {
+            if (b.x + b.width / 2 < pieX + pieW / 2) {
+              b.x = pieX - b.width;
+            } else {
+              b.x = pieX + pieW;
+            }
+            b.vx = -b.vx;
+          } else {
+            if (b.y + b.height / 2 < pieY + pieH / 2) {
+              b.y = pieY - b.height;
+            } else {
+              b.y = pieY + pieH;
+            }
+            b.vy = -b.vy;
+          }
+        }
+      });
+      // Update DOM positions.
+      balloons.forEach(b => {
+        b.elem.style.left = b.x + "px";
+        b.elem.style.top = b.y + "px";
       });
     }
 
-    // Handle click events on circles
-    function handleClick(clickedDigit) {
-      const expectedDigit = piDigits[currentIndex];
-      if (clickedDigit === expectedDigit) {
-        // Correct click: update score and move to next digit
-        score++;
-        currentIndex++;
-        scoreEl.textContent = "Score: " + score;
-        if (currentIndex < piDigits.length) {
-          targetEl.textContent = "Next Digit: " + piDigits[currentIndex];
-          generateBoard();
-        } else {
-          // Player wins if all digits are correctly clicked
-          targetEl.textContent = "You Win!";
-          gameBoard.innerHTML = "";
-          restartBtn.style.display = "inline-block";
-        }
-      } else {
-        // Wrong click: game over
-        targetEl.textContent = "Game Over! Expected: " + expectedDigit;
-        gameBoard.innerHTML = "";
-        restartBtn.style.display = "inline-block";
+    function simulationLoop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      let dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+      if (gameRunning) {
+        updatePhysics(dt);
+        requestAnimationFrame(simulationLoop);
       }
     }
 
-    // Restart the game
-    function restartGame() {
-      currentIndex = 0;
-      score = 0;
-      scoreEl.textContent = "Score: " + score;
-      targetEl.textContent = "Next Digit: " + piDigits[currentIndex];
-      restartBtn.style.display = "none";
-      generateBoard();
+    function handleBalloonClick(clickedDigit, balloonObj) {
+      const expectedDigit = piDigits[balloonCurrentIndex];
+      if (clickedDigit === expectedDigit) {
+        balloonScore++;
+        balloonCurrentIndex++;
+        balloonScoreEl.textContent = "Score: " + balloonScore;
+        if (balloonCurrentIndex === 1) {
+          pieDigitsCollected = piDigits[0] + ".";
+        } else {
+          pieDigitsCollected += clickedDigit;
+        }
+        updatePieContainer();
+        if (balloonCurrentIndex >= piDigits.length) {
+          gameRunning = false;
+          clearAllBalloons();
+          balloonRestartBtn.style.display = "inline-block";
+          return;
+        }
+        dropDigitToPie(clickedDigit, balloonObj);
+        removeBalloon(balloonObj);
+        respawnBalloon(clickedDigit);
+      } else {
+        gameRunning = false;
+        clearAllBalloons();
+        balloonRestartBtn.style.display = "inline-block";
+      }
     }
 
-    // Initialize game on page load
-    window.onload = generateBoard;
-    restartBtn.addEventListener("click", restartGame);
+    function dropDigitToPie(digit, balloonObj) {
+      const fallingDigit = document.createElement("div");
+      fallingDigit.classList.add("falling-digit");
+      fallingDigit.textContent = digit;
+      // Use viewport coordinates (fixed position) since the pie dish is outside the container.
+      const balloonRect = balloonObj.elem.getBoundingClientRect();
+      const pieRect = pieContainerEl.getBoundingClientRect();
+      fallingDigit.style.top = balloonRect.top + "px";
+      fallingDigit.style.left = balloonRect.left + "px";
+      document.body.appendChild(fallingDigit);
+      const targetTop = pieRect.top + pieRect.height / 2;
+      const targetLeft = pieRect.left + pieRect.width / 2;
+      fallingDigit.offsetHeight;
+      fallingDigit.style.top = targetTop + "px";
+      fallingDigit.style.left = targetLeft + "px";
+      fallingDigit.addEventListener("transitionend", () => {
+        fallingDigit.remove();
+      }, { once: true });
+    }
+
+    function updatePieContainer() {
+      pieContainerEl.textContent = "Pie: " + pieDigitsCollected;
+      const numChars = pieDigitsCollected.length;
+      const minWidth = 150;
+      let newWidth = minWidth;
+      if (numChars > 2) {
+        newWidth = minWidth + (numChars - 2) * 15;
+      }
+      pieContainerEl.style.width = newWidth + "px";
+    }
+
+    function clearAllBalloons() {
+      balloons.forEach(b => b.elem.remove());
+      balloons = [];
+    }
+
+    function startBalloonGame() {
+      gameRunning = true;
+      balloonCurrentIndex = 0;
+      balloonScore = 0;
+      pieDigitsCollected = "";
+      balloonScoreEl.textContent = "Score: " + balloonScore;
+      pieContainerEl.textContent = "Pie:";
+      pieContainerEl.style.width = "150px";
+      clearAllBalloons();
+      spawnAllBalloons();
+      balloonRestartBtn.style.display = "none";
+      lastTime = null;
+      requestAnimationFrame(simulationLoop);
+    }
+
+    balloonRestartBtn.addEventListener("click", startBalloonGame);
+
+    window.onload = function() {
+      startBalloonGame();
+    };
   </script>
 </body>
 </html>
